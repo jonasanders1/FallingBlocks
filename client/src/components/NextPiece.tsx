@@ -3,11 +3,9 @@ import "../styles/nextPiece.css";
 const NextPiece = () => {
   return (
     <div className="next-piece-container">
-      
       <h1>Next</h1>
 
       <div className="next-piece-cell-container">
-      
         {/* Hard coded 1st piece */}
         <div className="next-piece-cell">
           <div className="next-piece-cell-inner">
@@ -34,7 +32,6 @@ const NextPiece = () => {
             <div className="next-piece-cell-inner-piece"></div>
           </div>
         </div>
-
       </div>
     </div>
   );
