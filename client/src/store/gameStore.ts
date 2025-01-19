@@ -271,6 +271,23 @@ export const useGameStore = create<GameState>((set, get) => ({
     }),
 
   init: () => {
+    set({
+      board: Array.from({ length: BOARD_HEIGHT }, () =>
+        Array(BOARD_WIDTH).fill(null)
+      ),
+      currentPiece: {
+        type: "T",
+        position: { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 },
+        rotation: 0,
+      },
+      score: 0,
+      level: 1,
+      linesCleared: 0,
+      totalLinesCleared: 0,
+      gravitySpeed: 800,
+      holdPiece: null,
+      canHold: true,
+    });
     get().refillQueue();
     get().generateNewPiece();
   },

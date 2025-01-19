@@ -5,10 +5,16 @@ import GameControls from "./utils/GameControls";
 
 import { useGameStore } from "./store/gameStore";
 import TetrominoDisplay from "./components/TetrominoDisplay";
-import { useEffect } from "react";
-import Score from "./components/Score";
+import Stats from "./components/Stats";
 
-const Game = () => {
+import { useEffect } from "react";
+
+interface GameProps {
+  onToggleModal: (isOpen: boolean) => void;
+  isModalOpen: boolean;
+}
+
+const Game = ({ onToggleModal, isModalOpen }: GameProps) => {
   // Initialize the game
   const init = useGameStore((state) => state.init);
   const startGravity = useGameStore((state) => state.startGravity);
@@ -34,18 +40,18 @@ const Game = () => {
 
   return (
     <div>
-      <ScoreContainer>
-        <Score />
-      </ScoreContainer>
       <GameContainer>
-        <TetrominoDisplay
-          title="Hold"
-          pieces={holdPiece ? [holdPiece] : []}
-          variant="hold"
-        />
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <TetrominoDisplay
+            title="Hold"
+            pieces={holdPiece ? [holdPiece] : []}
+            variant="hold"
+          />
+          <Stats />
+        </div>
         <GameBoard />
         <TetrominoDisplay title="Next" pieces={pieceQueue} variant="next" />
-        <GameControls />
+        <GameControls onToggleModal={onToggleModal} isModalOpen={isModalOpen} />
       </GameContainer>
     </div>
   );
@@ -56,12 +62,6 @@ const GameContainer = styled.div`
   justify-content: center;
   align-items: flex-start;
   gap: 1rem;
-`;
-
-const ScoreContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
 `;
 
 export default Game;

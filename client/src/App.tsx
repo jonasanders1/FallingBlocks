@@ -2,13 +2,20 @@
 import "./App.css";
 import Game from "./Game";
 import styled from "styled-components";
+import Header from "./components/Header";
+import { useState } from "react";
 // import { socket } from "./socket";
 
 function App() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
-    <GameContainer>
-      <Game />
-    </GameContainer>
+    <>
+      <Header isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} />
+      <GameContainer>
+        <Game onToggleModal={setIsModalOpen} isModalOpen={isModalOpen} />
+      </GameContainer>
+    </>
   );
 }
 
@@ -17,7 +24,6 @@ const GameContainer = styled.div`
   justify-content: center;
   align-items: center;
   gap: 1rem;
-  height: 100vh;
 `;
 
 export default App;
