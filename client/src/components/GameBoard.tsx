@@ -28,10 +28,10 @@ const GameBoard = () => {
 
       const piece = TETROMINOES[currentPiece.type];
       const rotatedShape = rotateMatrix(piece.shape, currentPiece.rotation);
-      
+
       // Calculate shadow position
       const dropPosition = findDropPosition();
-      
+
       // Check if cell is part of the shadow
       const inShadow = rotatedShape.some((shapeRow, pieceY) =>
         shapeRow.some((cell, pieceX) => {
@@ -50,23 +50,24 @@ const GameBoard = () => {
         })
       );
 
-      const style = inPiece 
+      const cellClass = (row + col) % 2 === 0 ? "dark-cell" : "light-cell";
+
+      const style = inPiece
         ? {
             backgroundColor: piece.color,
             border: "4px solid rgba(255,255,255,0.2)",
           }
         : inShadow
         ? {
-            backgroundColor: 'transparent',
-            border: `2px dashed rgba(255,255,255,1)`,
-            opacity: 0.2
+            backgroundColor: cellClass === "dark-cell" ? "#2c2c2c" : "#2e2e30",
+            border: `2px dashed rgba(255,255,255,0.2)`,
           }
         : undefined;
 
       return (
         <div
           key={`cell-${row}-${col}`}
-          className={`grid-cell ${(row + col) % 2 === 0 ? "dark-cell" : "light-cell"}`}
+          className={`grid-cell ${cellClass}`}
           style={style}
         />
       );
