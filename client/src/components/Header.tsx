@@ -1,5 +1,7 @@
 import "../styles/header.css";
 import Modal from "./Modal";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBars } from "@fortawesome/free-solid-svg-icons";
 
 interface HeaderProps {
   isModalOpen: boolean;
@@ -20,7 +22,8 @@ const Header = ({ isModalOpen, setIsModalOpen }: HeaderProps) => {
             className="header-button"
             onClick={() => handleToggleModal(true)}
           >
-            Menu
+            <FontAwesomeIcon icon={faBars} />
+            <span>(ESC)</span>
           </button>
         </div>
       </nav>
