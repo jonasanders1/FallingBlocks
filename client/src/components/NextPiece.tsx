@@ -35,7 +35,7 @@ const NextPiece = () => {
 
   return (
     <div className="next-piece-container">
-      <h1>Next</h1>
+      <h1 className="next-piece-title">Next</h1>
 
       <div className="next-piece-cell-container">
         {pieceQueue.map((piece, index) => (

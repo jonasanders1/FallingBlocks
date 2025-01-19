@@ -10,6 +10,8 @@ interface GameState {
     rotation: number;
   };
   pieceQueue: TetrominoType[];
+  holdPiece: TetrominoType | null;
+  canHold: boolean;
   setCurrentPiece: (piece: TetrominoType) => void;
 
   // Actions
@@ -26,6 +28,14 @@ interface GameState {
   generateNewPiece: () => void;
   refillQueue: () => void;
   init: () => void;
+  holdCurrentPiece: () => void;
+  gravitySpeed: number;
+  isPlaying: boolean;
+  gravityTimer: NodeJS.Timeout | null;
+  startGravity: () => void;
+  stopGravity: () => void;
+  clearLines: () => void;
+  score: number;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -38,6 +48,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     rotation: 0,
   },
   pieceQueue: [],
+  holdPiece: null,
+  canHold: true,
+  gravitySpeed: 800, // Slightly faster for smoother feel
+  isPlaying: false,
+  gravityTimer: null,
+  score: 0,
 
   setCurrentPiece: (type) =>
     set(() => ({
@@ -190,9 +206,13 @@ export const useGameStore = create<GameState>((set, get) => ({
       // Generate next piece from queue
       state.generateNewPiece();
 
-      return {
-        board: newBoard,
-      };
+      // First update the board
+      set({ board: newBoard, canHold: true });
+
+      // Then check and clear lines
+      get().clearLines();
+
+      return {};
     }),
 
   rotatePiece: () =>
@@ -248,6 +268,113 @@ export const useGameStore = create<GameState>((set, get) => ({
     get().refillQueue();
     get().generateNewPiece();
   },
+
+  holdCurrentPiece: () =>
+    set((state) => {
+      // If we can't hold, return current state
+      if (!state.canHold) return state;
+
+      const currentType = state.currentPiece.type;
+      let nextPiece;
+
+      // If there's no held piece, get next piece from queue
+      if (state.holdPiece === null) {
+        const [next, ...remaining] = state.pieceQueue;
+        nextPiece = next;
+
+        // Generate new piece for queue
+        const pieces: TetrominoType[] = ["I", "O", "T", "S", "Z", "J", "L"];
+        const randomPiece = pieces[Math.floor(Math.random() * pieces.length)];
+
+        return {
+          holdPiece: currentType,
+          canHold: false,
+          currentPiece: {
+            type: nextPiece,
+            position: { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 },
+            rotation: 0,
+          },
+          pieceQueue: [...remaining, randomPiece],
+        };
+      }
+
+      // If there is a held piece, swap with current piece
+      return {
+        holdPiece: currentType,
+        canHold: false,
+        currentPiece: {
+          type: state.holdPiece,
+          position: { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 },
+          rotation: 0,
+        },
+      };
+    }),
+
+  startGravity: () => {
+    const currentTimer = get().gravityTimer;
+    if (currentTimer) {
+      clearInterval(currentTimer);
+    }
+
+    const timer = setInterval(() => {
+      const state = get();
+      if (!state.isPlaying) return;
+
+      const newPosition = {
+        x: state.currentPiece.position.x,
+        y: state.currentPiece.position.y + 1,
+      };
+
+      if (state.isValidMove(newPosition)) {
+        set((state) => ({
+          currentPiece: {
+            ...state.currentPiece,
+            position: newPosition,
+          },
+        }));
+      } else {
+        state.lockPiece();
+      }
+    }, get().gravitySpeed);
+
+    set({ isPlaying: true, gravityTimer: timer });
+  },
+
+  stopGravity: () => {
+    const currentTimer = get().gravityTimer;
+    if (currentTimer) {
+      clearInterval(currentTimer);
+    }
+    set({ isPlaying: false, gravityTimer: null });
+  },
+
+  clearLines: () => {
+    const { board } = get();
+    const newBoard = [...board.map((row) => [...row])];
+    let linesCleared = 0;
+
+    // Check each row from bottom to top
+    for (let row = BOARD_HEIGHT - 1; row >= 0; row--) {
+      if (newBoard[row].every((cell) => cell !== null)) {
+        // Remove the complete line
+        newBoard.splice(row, 1);
+        // Add new empty line at top
+        newBoard.unshift(Array(BOARD_WIDTH).fill(null));
+        linesCleared++;
+        // Adjust row counter to recheck the same position
+        row++;
+      }
+    }
+
+    if (linesCleared > 0) {
+      // Update score based on lines cleared
+      const scoreIncrease = calculateScore(linesCleared);
+      set((state) => ({
+        board: newBoard,
+        score: state.score + scoreIncrease,
+      }));
+    }
+  },
 }));
 
 // Helper function to rotate matrix
@@ -260,3 +387,10 @@ export function rotateMatrix(matrix: number[][], rotation: number): number[][] {
   }
   return rotated;
 }
+
+// Helper function to calculate score based on lines cleared
+const calculateScore = (lines: number): number => {
+  const basePoints = 100;
+  const multipliers = [1, 2.5, 7.5, 15]; // Multipliers for 1, 2, 3, or 4 lines
+  return Math.floor(basePoints * (multipliers[lines - 1] || 0));
+};
