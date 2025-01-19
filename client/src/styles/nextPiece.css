@@ -1,8 +1,6 @@
 .next-piece-container {
-  position: absolute;
   color: white;
-  left: 105%;
-  top: 0px;
+
   display: flex;
   flex-direction: column;
   align-items: center;

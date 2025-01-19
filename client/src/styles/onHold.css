@@ -1,14 +1,6 @@
-.game {
-  width: fit-content;
-  position: relative;
-  margin: auto;
-}
 
 .hold-container {
-  position: absolute;
   color: white;
-  right: 105%;
-  top: 0px;
   display: flex;
   flex-direction: column;
   align-items: center;
