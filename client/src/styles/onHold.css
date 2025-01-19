@@ -1,0 +1,40 @@
+.game {
+  width: fit-content;
+  position: relative;
+  margin: auto;
+  margin-top: 60px;
+}
+
+.hold-container {
+  position: absolute;
+  color: white;
+  right: 105%;
+  top: 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.hold-cell {
+  width: 60px;
+  aspect-ratio: 1/1;
+  background-color: black;
+  border: 2px solid #545454;
+  border-radius: 0.25rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hold-cell-inner {
+  height: 30px;
+  aspect-ratio: 1/1;
+}
+
+.hold-cell-inner-piece {
+  background-color: yellow;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.2.5rem;
+}

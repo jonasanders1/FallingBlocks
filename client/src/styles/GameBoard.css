@@ -1,0 +1,40 @@
+:root {
+  --cell-size: 25px;
+  --cell-gap: 2px;
+  --board-color: #202020;
+  --dark-cell-color: #2c2c2c;
+  --light-cell-color: #2e2e30;
+}
+
+.game-board {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: fit-content;
+}
+
+.game-grid {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--board-color);
+  gap: var(--cell-gap);
+}
+
+.grid-row {
+  display: flex;
+  gap: var(--cell-gap);
+}
+
+.grid-cell {
+  width: var(--cell-size);
+  aspect-ratio: 1/1;
+  border-radius: 3px;
+}
+
+.dark-cell {
+  background-color: var(--dark-cell-color);
+}
+
+.light-cell {
+  background-color: var(--light-cell-color);
+}

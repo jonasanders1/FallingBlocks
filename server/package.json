@@ -1,0 +1,23 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "server.ts",
+  "scripts": {
+    "start": "ts-node server.ts"
+  },
+  "author": "Jonas Andersen",
+  "license": "ISC",
+  "description": "Server for the game application",
+  "optionalDependencies": {
+    "bufferutil": "^4.0.9",
+    "utf-8-validate": "^6.0.5"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.7"
+  }
+}
