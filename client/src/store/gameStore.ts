@@ -9,6 +9,7 @@ interface GameState {
     position: { x: number; y: number };
     rotation: number;
   };
+  pieceQueue: TetrominoType[];
   setCurrentPiece: (piece: TetrominoType) => void;
 
   // Actions
@@ -22,6 +23,9 @@ interface GameState {
   ) => boolean;
   shouldLockPiece: () => boolean;
   findDropPosition: () => { x: number; y: number };
+  generateNewPiece: () => void;
+  refillQueue: () => void;
+  init: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -33,6 +37,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     position: { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 },
     rotation: 0,
   },
+  pieceQueue: [],
 
   setCurrentPiece: (type) =>
     set(() => ({
@@ -182,16 +187,11 @@ export const useGameStore = create<GameState>((set, get) => ({
         });
       });
 
-      // Generate a new piece
+      // Generate next piece from queue
+      state.generateNewPiece();
+
       return {
         board: newBoard,
-        currentPiece: {
-          type: ["I", "O", "T", "S", "Z", "J", "L"][
-            Math.floor(Math.random() * 7)
-          ] as TetrominoType,
-          position: { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 },
-          rotation: 0,
-        },
       };
     }),
 
@@ -209,6 +209,45 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
       return state;
     }),
+
+  generateNewPiece: () =>
+    set((state) => {
+      // Get next piece from queue
+      const [nextPiece, ...remainingPieces] = state.pieceQueue;
+
+      // Add a new random piece to maintain 4 pieces
+      const pieces: TetrominoType[] = ["I", "O", "T", "S", "Z", "J", "L"];
+      const randomPiece = pieces[Math.floor(Math.random() * pieces.length)];
+      const newQueue = [...remainingPieces, randomPiece];
+
+      return {
+        currentPiece: {
+          type: nextPiece,
+          position: { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 },
+          rotation: 0,
+        },
+        pieceQueue: newQueue,
+      };
+    }),
+
+  refillQueue: () =>
+    set(() => {
+      const pieces: TetrominoType[] = ["I", "O", "T", "S", "Z", "J", "L"];
+      // Create initial queue of 4 random pieces
+      const initialQueue = Array.from({ length: 4 }, () => {
+        const randomIndex = Math.floor(Math.random() * pieces.length);
+        return pieces[randomIndex];
+      });
+
+      return {
+        pieceQueue: initialQueue,
+      };
+    }),
+
+  init: () => {
+    get().refillQueue();
+    get().generateNewPiece();
+  },
 }));
 
 // Helper function to rotate matrix
