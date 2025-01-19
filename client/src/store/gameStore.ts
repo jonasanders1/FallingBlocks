@@ -36,6 +36,9 @@ interface GameState {
   stopGravity: () => void;
   clearLines: () => void;
   score: number;
+  level: number;
+  linesCleared: number;
+  totalLinesCleared: number;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -54,6 +57,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   isPlaying: false,
   gravityTimer: null,
   score: 0,
+  level: 1,
+  linesCleared: 0,
+  totalLinesCleared: 0,
 
   setCurrentPiece: (type) =>
     set(() => ({
@@ -356,22 +362,26 @@ export const useGameStore = create<GameState>((set, get) => ({
     // Check each row from bottom to top
     for (let row = BOARD_HEIGHT - 1; row >= 0; row--) {
       if (newBoard[row].every((cell) => cell !== null)) {
-        // Remove the complete line
         newBoard.splice(row, 1);
-        // Add new empty line at top
         newBoard.unshift(Array(BOARD_WIDTH).fill(null));
         linesCleared++;
-        // Adjust row counter to recheck the same position
         row++;
       }
     }
 
     if (linesCleared > 0) {
-      // Update score based on lines cleared
       const scoreIncrease = calculateScore(linesCleared);
+      const currentTotalLines = get().totalLinesCleared + linesCleared;
+      const newLevel = Math.floor(currentTotalLines / 10) + 1;
+      
       set((state) => ({
         board: newBoard,
         score: state.score + scoreIncrease,
+        linesCleared: linesCleared,
+        totalLinesCleared: currentTotalLines,
+        level: newLevel,
+        // Increase speed with level
+        gravitySpeed: Math.max(100, 800 - (newLevel - 1) * 50),
       }));
     }
   },

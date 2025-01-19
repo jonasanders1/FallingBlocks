@@ -6,6 +6,7 @@ import GameControls from "./utils/GameControls";
 import { useGameStore } from "./store/gameStore";
 import TetrominoDisplay from "./components/TetrominoDisplay";
 import { useEffect } from "react";
+import Score from "./components/Score";
 
 const Game = () => {
   // Initialize the game
@@ -33,9 +34,9 @@ const Game = () => {
 
   return (
     <div>
-      {/* <ScoreContainer>
+      <ScoreContainer>
         <Score />
-      </ScoreContainer> */}
+      </ScoreContainer>
       <GameContainer>
         <TetrominoDisplay
           title="Hold"
@@ -57,10 +58,10 @@ const GameContainer = styled.div`
   gap: 1rem;
 `;
 
-// const ScoreContainer = styled.div`
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-// `;
+const ScoreContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
 
 export default Game;

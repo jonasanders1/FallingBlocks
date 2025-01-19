@@ -1,0 +1,28 @@
+.score-container {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.score-box {
+  background: linear-gradient(160deg, #363636, #252525);
+  padding: 1rem 2rem;
+  border-radius: 0.25rem;
+  min-width: 150px;
+  text-align: center;
+}
+
+.score-title {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 300;
+  margin: 0;
+  margin-bottom: 0.5rem;
+}
+
+.score-value {
+  color: white;
+  font-size: 2rem;
+  font-weight: bold;
+}
