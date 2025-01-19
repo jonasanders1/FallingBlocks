@@ -11,6 +11,22 @@ const GameBoard = () => {
 
   const renderCell = useCallback(
     (row: number, col: number) => {
+      // Check if there's a locked piece in this cell
+      const lockedPiece = board[row][col];
+      if (lockedPiece) {
+        return (
+          <div
+            key={`cell-${row}-${col}`}
+            className="grid-cell"
+            style={{
+              backgroundColor: lockedPiece,
+              border: "3px solid rgba(255,255,255,0.2)",
+            }}
+          />
+        );
+      }
+
+      // Rest of the existing rendering logic for the current piece
       const piece = TETROMINOES[currentPiece.type];
       const rotatedShape = rotateMatrix(piece.shape, currentPiece.rotation);
       const pieceStyle = {
@@ -18,8 +34,8 @@ const GameBoard = () => {
         border: "3px solid rgba(255,255,255,0.2)",
       };
   
-      const inPiece = rotatedShape.some((shapeRow: number[], pieceY: number) =>
-        shapeRow.some((cell: number, pieceX: number) => {
+      const inPiece = rotatedShape.some((shapeRow, pieceY) =>
+        shapeRow.some((cell, pieceX) => {
           const boardX = currentPiece.position.x + pieceX;
           const boardY = currentPiece.position.y + pieceY;
           return cell === 1 && boardX === col && boardY === row;
@@ -34,7 +50,7 @@ const GameBoard = () => {
         />
       );
     },
-    [currentPiece]
+    [currentPiece, board]
   );
 
   return (

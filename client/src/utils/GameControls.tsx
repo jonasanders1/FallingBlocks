@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useGameStore } from "../store/gameStore";
 
 const GameControls = () => {
-  const { movePiece, rotatePiece } = useGameStore();
+  const { movePiece, rotatePiece, dropPiece } = useGameStore();
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -18,15 +18,17 @@ const GameControls = () => {
           movePiece({ x: 0, y: 1 });
           break;
         case "ArrowUp":
-        case " ": // Spacebar
           rotatePiece();
+          break;
+        case " ":
+          dropPiece();
           break;
       }
     };
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [movePiece, rotatePiece]);
+  }, [movePiece, rotatePiece, dropPiece]);
 
   return null;
 };

@@ -14,10 +14,14 @@ interface GameState {
   // Actions
   movePiece: (direction: { x: number; y: number }) => void;
   rotatePiece: () => void;
+  dropPiece: () => void;
+  lockPiece: () => void;
   isValidMove: (
     position: { x: number; y: number },
     rotation?: number
   ) => boolean;
+  shouldLockPiece: () => boolean;
+  findDropPosition: () => { x: number; y: number };
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -97,6 +101,38 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
+  shouldLockPiece: () => {
+    const { currentPiece } = get();
+    const nextPosition = {
+      x: currentPiece.position.x,
+      y: currentPiece.position.y + 1,
+    };
+    return !get().isValidMove(nextPosition);
+  },
+
+  findDropPosition: () => {
+    const { currentPiece } = get();
+    let dropY = currentPiece.position.y;
+
+    // Keep moving down until we hit something
+    while (get().isValidMove({ x: currentPiece.position.x, y: dropY + 1 })) {
+      dropY++;
+    }
+
+    return { x: currentPiece.position.x, y: dropY };
+  },
+
+  dropPiece: () => {
+    const dropPosition = get().findDropPosition();
+    set((state) => ({
+      currentPiece: {
+        ...state.currentPiece,
+        position: dropPosition,
+      },
+    }));
+    get().lockPiece();
+  },
+
   movePiece: (direction) =>
     set((state) => {
       const newPosition = {
@@ -112,7 +148,44 @@ export const useGameStore = create<GameState>((set, get) => ({
           },
         };
       }
+
+      // If moving down and hit something, lock the piece
+      if (direction.y > 0 && !state.isValidMove(newPosition)) {
+        state.lockPiece();
+      }
+      
       return state;
+    }),
+
+  lockPiece: () => 
+    set((state) => {
+      const { currentPiece, board } = state;
+      const piece = TETROMINOES[currentPiece.type];
+      const rotatedShape = rotateMatrix(piece.shape, currentPiece.rotation);
+      const newBoard = [...board.map(row => [...row])];
+
+      // Add the piece to the board
+      rotatedShape.forEach((row, y) => {
+        row.forEach((cell, x) => {
+          if (cell) {
+            const boardY = currentPiece.position.y + y;
+            const boardX = currentPiece.position.x + x;
+            if (boardY >= 0 && boardY < BOARD_HEIGHT && boardX >= 0 && boardX < BOARD_WIDTH) {
+              newBoard[boardY][boardX] = piece.color;
+            }
+          }
+        });
+      });
+
+      // Generate a new piece
+      return {
+        board: newBoard,
+        currentPiece: {
+          type: ["I", "O", "T", "S", "Z", "J", "L"][Math.floor(Math.random() * 7)] as TetrominoType,
+          position: { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 },
+          rotation: 0,
+        },
+      };
     }),
 
   rotatePiece: () =>
