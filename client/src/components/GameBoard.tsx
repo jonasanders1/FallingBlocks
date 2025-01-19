@@ -7,7 +7,7 @@ const BOARD_HEIGHT = 20;
 const BOARD_WIDTH = 10;
 
 const GameBoard = () => {
-  const { currentPiece, board } = useGameStore();
+  const { currentPiece, board, findDropPosition } = useGameStore();
 
   const renderCell = useCallback(
     (row: number, col: number) => {
@@ -26,14 +26,22 @@ const GameBoard = () => {
         );
       }
 
-      // Rest of the existing rendering logic for the current piece
       const piece = TETROMINOES[currentPiece.type];
       const rotatedShape = rotateMatrix(piece.shape, currentPiece.rotation);
-      const pieceStyle = {
-        backgroundColor: piece.color,
-        border: "3px solid rgba(255,255,255,0.2)",
-      };
-  
+      
+      // Calculate shadow position
+      const dropPosition = findDropPosition();
+      
+      // Check if cell is part of the shadow
+      const inShadow = rotatedShape.some((shapeRow, pieceY) =>
+        shapeRow.some((cell, pieceX) => {
+          const boardX = dropPosition.x + pieceX;
+          const boardY = dropPosition.y + pieceY;
+          return cell === 1 && boardX === col && boardY === row;
+        })
+      );
+
+      // Check if cell is part of the current piece
       const inPiece = rotatedShape.some((shapeRow, pieceY) =>
         shapeRow.some((cell, pieceX) => {
           const boardX = currentPiece.position.x + pieceX;
@@ -41,16 +49,29 @@ const GameBoard = () => {
           return cell === 1 && boardX === col && boardY === row;
         })
       );
-  
+
+      const style = inPiece 
+        ? {
+            backgroundColor: piece.color,
+            border: "4px solid rgba(255,255,255,0.2)",
+          }
+        : inShadow
+        ? {
+            backgroundColor: 'transparent',
+            border: `2px dashed rgba(255,255,255,1)`,
+            opacity: 0.2
+          }
+        : undefined;
+
       return (
         <div
           key={`cell-${row}-${col}`}
           className={`grid-cell ${(row + col) % 2 === 0 ? "dark-cell" : "light-cell"}`}
-          style={inPiece ? pieceStyle : undefined}
+          style={style}
         />
       );
     },
-    [currentPiece, board]
+    [currentPiece, board, findDropPosition]
   );
 
   return (

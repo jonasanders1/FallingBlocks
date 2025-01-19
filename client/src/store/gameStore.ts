@@ -153,16 +153,16 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (direction.y > 0 && !state.isValidMove(newPosition)) {
         state.lockPiece();
       }
-      
+
       return state;
     }),
 
-  lockPiece: () => 
+  lockPiece: () =>
     set((state) => {
       const { currentPiece, board } = state;
       const piece = TETROMINOES[currentPiece.type];
       const rotatedShape = rotateMatrix(piece.shape, currentPiece.rotation);
-      const newBoard = [...board.map(row => [...row])];
+      const newBoard = [...board.map((row) => [...row])];
 
       // Add the piece to the board
       rotatedShape.forEach((row, y) => {
@@ -170,7 +170,12 @@ export const useGameStore = create<GameState>((set, get) => ({
           if (cell) {
             const boardY = currentPiece.position.y + y;
             const boardX = currentPiece.position.x + x;
-            if (boardY >= 0 && boardY < BOARD_HEIGHT && boardX >= 0 && boardX < BOARD_WIDTH) {
+            if (
+              boardY >= 0 &&
+              boardY < BOARD_HEIGHT &&
+              boardX >= 0 &&
+              boardX < BOARD_WIDTH
+            ) {
               newBoard[boardY][boardX] = piece.color;
             }
           }
@@ -181,7 +186,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       return {
         board: newBoard,
         currentPiece: {
-          type: ["I", "O", "T", "S", "Z", "J", "L"][Math.floor(Math.random() * 7)] as TetrominoType,
+          type: ["I", "O", "T", "S", "Z", "J", "L"][
+            Math.floor(Math.random() * 7)
+          ] as TetrominoType,
           position: { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 },
           rotation: 0,
         },
