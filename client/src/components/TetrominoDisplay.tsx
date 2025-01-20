@@ -12,13 +12,12 @@ import L from "../assets/L.png";
 import "../styles/tetrominoDisplay.css";
 
 interface TetrominoDisplayProps {
-  title: string;
   pieces: TetrominoType[];
   variant?: "hold" | "next";
+  
 }
 
 const TetrominoDisplay = ({
-  title,
   pieces,
   variant = "next",
 }: TetrominoDisplayProps) => {
@@ -45,7 +44,6 @@ const TetrominoDisplay = ({
 
   return (
     <div className={`tetromino-display ${variant}`}>
-      <h1 className="tetromino-display-title">{title}</h1>
       <div className="tetromino-display-container">
         {pieces.length === 0 && (
           <div className="tetromino-cell">

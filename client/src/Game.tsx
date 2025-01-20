@@ -1,13 +1,12 @@
 import GameBoard from "./components/GameBoard";
-
 import styled from "styled-components";
 import GameControls from "./utils/GameControls";
 
 import { useGameStore } from "./store/gameStore";
 import TetrominoDisplay from "./components/TetrominoDisplay";
-import Stats from "./components/Stats";
 
 import { useEffect } from "react";
+import GameHeder from "./components/GameHeder";
 
 interface GameProps {
   onToggleModal: (isOpen: boolean) => void;
@@ -19,6 +18,7 @@ const Game = ({ onToggleModal, isModalOpen }: GameProps) => {
   const init = useGameStore((state) => state.init);
   const startGravity = useGameStore((state) => state.startGravity);
   const stopGravity = useGameStore((state) => state.stopGravity);
+  const startTimer = useGameStore((state) => state.startTimer);
 
   // Get the piece queue and hold piece
   const pieceQueue = useGameStore((state) => state.pieceQueue);
@@ -30,37 +30,47 @@ const Game = ({ onToggleModal, isModalOpen }: GameProps) => {
     // Small delay before starting gravity for smoother initial experience
     const gravityTimeout = setTimeout(() => {
       startGravity();
+      startTimer();
     }, 500);
 
     return () => {
       clearTimeout(gravityTimeout);
       stopGravity();
     };
-  }, [init, startGravity, stopGravity]);
+  }, [init, startGravity, stopGravity, startTimer]);
 
   return (
-    <div>
-      <GameContainer>
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <GameContainer>
+      <GameHeder />
+      <GameBody>
+        <StatsContainer>
           <TetrominoDisplay
-            title="Hold"
             pieces={holdPiece ? [holdPiece] : []}
             variant="hold"
           />
-          <Stats />
-        </div>
+        </StatsContainer>
         <GameBoard />
-        <TetrominoDisplay title="Next" pieces={pieceQueue} variant="next" />
+        <TetrominoDisplay pieces={pieceQueue} variant="next" />
         <GameControls onToggleModal={onToggleModal} isModalOpen={isModalOpen} />
-      </GameContainer>
-    </div>
+      </GameBody>
+    </GameContainer>
   );
 };
 
 const GameContainer = styled.div`
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const GameBody = styled.div`
+  display: flex;
+  gap: 1rem;
+`;
+
+const StatsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 `;
 

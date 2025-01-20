@@ -12,14 +12,18 @@ const Modal = ({
   const stopGravity = useGameStore((state) => state.stopGravity);
   const startGravity = useGameStore((state) => state.startGravity);
   const init = useGameStore((state) => state.init);
+  const startTimer = useGameStore((state) => state.startTimer);
+  const stopTimer = useGameStore((state) => state.stopTimer);
 
   useEffect(() => {
     if (isOpen) {
       stopGravity();
+      stopTimer();
     } else {
       startGravity();
+      startTimer();
     }
-  }, [isOpen, stopGravity, startGravity]);
+  }, [isOpen, stopGravity, startGravity, startTimer, stopTimer]);
 
   if (!isOpen) return null;
 

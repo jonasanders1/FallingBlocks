@@ -15,7 +15,19 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("a user connected");
+  socket.on('join_room', (roomId) => {
+    socket.join(roomId);
+    console.log(`User joined room ${roomId}`);  
+    // Handle room logic
+  });
+
+  socket.on('board_update', ({ roomId, board }) => {
+    socket.to(roomId).emit('opponent_board_update', board);
+  });
+
+  socket.on('score_update', ({ roomId, score }) => {
+    socket.to(roomId).emit('opponent_score_update', score);
+  });
 });
 
 server.listen(3000);

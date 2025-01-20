@@ -39,6 +39,11 @@ interface GameState {
   level: number;
   linesCleared: number;
   totalLinesCleared: number;
+  timeRemaining: number;
+  setTimeRemaining: (time: number) => void;
+  startTimer: () => void;
+  stopTimer: () => void;
+  timerInterval: NodeJS.Timeout | null;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -60,6 +65,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   level: 1,
   linesCleared: 0,
   totalLinesCleared: 0,
+  timeRemaining: 90,
+  timerInterval: null,
 
   setCurrentPiece: (type) =>
     set(() => ({
@@ -401,6 +408,35 @@ export const useGameStore = create<GameState>((set, get) => ({
         gravitySpeed: Math.max(100, 800 - (newLevel - 1) * 50),
       }));
     }
+  },
+
+  setTimeRemaining: (time) => set({ timeRemaining: time }),
+
+  startTimer: () => {
+    const currentTimer = get().timerInterval;
+    if (currentTimer) {
+      clearInterval(currentTimer);
+    }
+
+    const timer = setInterval(() => {
+      set((state) => {
+        if (state.timeRemaining <= 0) {
+          clearInterval(timer);
+          return { timeRemaining: 0 };
+        }
+        return { timeRemaining: state.timeRemaining - 1 };
+      });
+    }, 1000);
+
+    set({ timerInterval: timer });
+  },
+
+  stopTimer: () => {
+    const currentTimer = get().timerInterval;
+    if (currentTimer) {
+      clearInterval(currentTimer);
+    }
+    set({ timerInterval: null });
   },
 }));
 

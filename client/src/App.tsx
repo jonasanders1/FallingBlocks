@@ -4,7 +4,7 @@ import Game from "./Game";
 import styled from "styled-components";
 import Header from "./components/Header";
 import { useState } from "react";
-// import { socket } from "./socket";
+// import { socket } from "./socket/gameSocket";
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
