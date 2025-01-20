@@ -1,18 +1,19 @@
 import { useCallback } from "react";
 import { TETROMINOES } from "../types/tetrominios";
 import { rotateMatrix, useGameStore } from "../store/gameStore";
+import { VISIBLE_BOARD_HEIGHT, HIDDEN_ROWS, BOARD_WIDTH } from "../constants/board";
 import "../styles/GameBoard.css";
-
-const BOARD_HEIGHT = 20;
-const BOARD_WIDTH = 10;
 
 const GameBoard = () => {
   const { currentPiece, board, findDropPosition } = useGameStore();
 
   const renderCell = useCallback(
     (row: number, col: number) => {
+      // Adjust row index to account for hidden rows
+      const actualRow = row + HIDDEN_ROWS;
+      
       // Check if there's a locked piece in this cell
-      const lockedPiece = board[row][col];
+      const lockedPiece = board[actualRow][col];
       if (lockedPiece) {
         return (
           <div
@@ -37,7 +38,7 @@ const GameBoard = () => {
         shapeRow.some((cell, pieceX) => {
           const boardX = dropPosition.x + pieceX;
           const boardY = dropPosition.y + pieceY;
-          return cell === 1 && boardX === col && boardY === row;
+          return cell === 1 && boardX === col && boardY === actualRow;
         })
       );
 
@@ -46,7 +47,7 @@ const GameBoard = () => {
         shapeRow.some((cell, pieceX) => {
           const boardX = currentPiece.position.x + pieceX;
           const boardY = currentPiece.position.y + pieceY;
-          return cell === 1 && boardX === col && boardY === row;
+          return cell === 1 && boardX === col && boardY === actualRow;
         })
       );
 
@@ -78,7 +79,7 @@ const GameBoard = () => {
   return (
     <div className="game-board">
       <div className="game-grid">
-        {Array.from({ length: BOARD_HEIGHT }, (_, row) => (
+        {Array.from({ length: VISIBLE_BOARD_HEIGHT }, (_, row) => (
           <div key={`row-${row}`} className="grid-row">
             {Array.from({ length: BOARD_WIDTH }, (_, col) =>
               renderCell(row, col)

@@ -1,5 +1,10 @@
 import { create } from "zustand";
-import { BOARD_HEIGHT, BOARD_WIDTH } from "../constants/board";
+import {
+  BOARD_WIDTH,
+  TOTAL_BOARD_HEIGHT as BOARD_HEIGHT,
+  HIDDEN_ROWS,
+  SPAWN_POSITION,
+} from "../constants/board";
 import { TetrominoType, TETROMINOES } from "../types/tetrominios";
 
 interface GameState {
@@ -44,6 +49,9 @@ interface GameState {
   startTimer: () => void;
   stopTimer: () => void;
   timerInterval: NodeJS.Timeout | null;
+  isGameOver: boolean;
+  gameOverReason: "blockout" | "timeout" | "lockout" | null;
+  checkGameOver: () => boolean;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -52,7 +60,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   ),
   currentPiece: {
     type: "T",
-    position: { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 },
+    position: { ...SPAWN_POSITION },
     rotation: 0,
   },
   pieceQueue: [],
@@ -67,12 +75,14 @@ export const useGameStore = create<GameState>((set, get) => ({
   totalLinesCleared: 0,
   timeRemaining: 90,
   timerInterval: null,
+  isGameOver: false,
+  gameOverReason: null,
 
   setCurrentPiece: (type) =>
     set(() => ({
       currentPiece: {
         type,
-        position: { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 },
+        position: { ...SPAWN_POSITION },
         rotation: 0,
       },
     })),
@@ -225,6 +235,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       // Then check and clear lines
       get().clearLines();
 
+      get().checkGameOver();
+
       return {};
     }),
 
@@ -248,19 +260,55 @@ export const useGameStore = create<GameState>((set, get) => ({
       // Get next piece from queue
       const [nextPiece, ...remainingPieces] = state.pieceQueue;
 
-      // Add a new random piece to maintain 4 pieces
-      const pieces: TetrominoType[] = ["I", "O", "T", "S", "Z", "J", "L"];
-      const randomPiece = pieces[Math.floor(Math.random() * pieces.length)];
-      const newQueue = [...remainingPieces, randomPiece];
+      // Always try to spawn at the default spawn position first
+      const spawnPosition = { ...SPAWN_POSITION };
 
-      return {
-        currentPiece: {
-          type: nextPiece,
-          position: { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 },
-          rotation: 0,
-        },
-        pieceQueue: newQueue,
-      };
+      // Check if we can spawn at default position
+      if (state.isValidMove(spawnPosition)) {
+        // Add a new random piece to maintain queue
+        const pieces: TetrominoType[] = ["I", "O", "T", "S", "Z", "J", "L"];
+        const randomPiece = pieces[Math.floor(Math.random() * pieces.length)];
+        const newQueue = [...remainingPieces, randomPiece];
+
+        return {
+          currentPiece: {
+            type: nextPiece,
+            position: spawnPosition,
+            rotation: 0,
+          },
+          pieceQueue: newQueue,
+        };
+      }
+
+      // If default spawn fails, try hidden rows (game over check)
+      for (let y = -1; y >= -HIDDEN_ROWS; y--) {
+        const testPosition = {
+          x: Math.floor(BOARD_WIDTH / 2) - 1,
+          y,
+        };
+
+        if (state.isValidMove(testPosition)) {
+          // If we can spawn in hidden rows, trigger game over
+          set({
+            isGameOver: true,
+            gameOverReason: "blockout",
+            isPlaying: false,
+          });
+          state.stopGravity();
+          state.stopTimer();
+          return state;
+        }
+      }
+
+      // If we can't spawn anywhere, trigger game over
+      set({
+        isGameOver: true,
+        gameOverReason: "blockout",
+        isPlaying: false,
+      });
+      state.stopGravity();
+      state.stopTimer();
+      return state;
     }),
 
   refillQueue: () =>
@@ -284,7 +332,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       ),
       currentPiece: {
         type: "T",
-        position: { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 },
+        position: { ...SPAWN_POSITION },
         rotation: 0,
       },
       score: 0,
@@ -301,18 +349,14 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   holdCurrentPiece: () =>
     set((state) => {
-      // If we can't hold, return current state
       if (!state.canHold) return state;
 
       const currentType = state.currentPiece.type;
       let nextPiece;
 
-      // If there's no held piece, get next piece from queue
       if (state.holdPiece === null) {
         const [next, ...remaining] = state.pieceQueue;
         nextPiece = next;
-
-        // Generate new piece for queue
         const pieces: TetrominoType[] = ["I", "O", "T", "S", "Z", "J", "L"];
         const randomPiece = pieces[Math.floor(Math.random() * pieces.length)];
 
@@ -321,20 +365,19 @@ export const useGameStore = create<GameState>((set, get) => ({
           canHold: false,
           currentPiece: {
             type: nextPiece,
-            position: { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 },
+            position: { ...SPAWN_POSITION },
             rotation: 0,
           },
           pieceQueue: [...remaining, randomPiece],
         };
       }
 
-      // If there is a held piece, swap with current piece
       return {
         holdPiece: currentType,
         canHold: false,
         currentPiece: {
           type: state.holdPiece,
-          position: { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 },
+          position: { ...SPAWN_POSITION },
           rotation: 0,
         },
       };
@@ -397,7 +440,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       const scoreIncrease = calculateScore(linesCleared);
       const currentTotalLines = get().totalLinesCleared + linesCleared;
       const newLevel = Math.floor(currentTotalLines / 10) + 1;
-      
+
       set((state) => ({
         board: newBoard,
         score: state.score + scoreIncrease,
@@ -422,6 +465,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       set((state) => {
         if (state.timeRemaining <= 0) {
           clearInterval(timer);
+          state.checkGameOver();
           return { timeRemaining: 0 };
         }
         return { timeRemaining: state.timeRemaining - 1 };
@@ -437,6 +481,51 @@ export const useGameStore = create<GameState>((set, get) => ({
       clearInterval(currentTimer);
     }
     set({ timerInterval: null });
+  },
+
+  checkGameOver: () => {
+    const state = get();
+
+    // Check for block out - can't place new piece in any position
+    let canPlacePiece = false;
+
+    // Try all positions in hidden rows
+    for (let y = 1; y >= -HIDDEN_ROWS; y--) {
+      const testPosition = {
+        x: Math.floor(BOARD_WIDTH / 2) - 1,
+        y,
+      };
+
+      if (state.isValidMove(testPosition)) {
+        canPlacePiece = true;
+        break;
+      }
+    }
+
+    if (!canPlacePiece) {
+      set({
+        isGameOver: true,
+        gameOverReason: "blockout",
+        isPlaying: false,
+      });
+      state.stopGravity();
+      state.stopTimer();
+      return true;
+    }
+
+    // Check for timeout
+    if (state.timeRemaining <= 0) {
+      set({
+        isGameOver: true,
+        gameOverReason: "timeout",
+        isPlaying: false,
+      });
+      state.stopGravity();
+      state.stopTimer();
+      return true;
+    }
+
+    return false;
   },
 }));
 

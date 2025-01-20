@@ -45,3 +45,14 @@
 .modal-buttons button:hover {
   background-color: #555555;
 }
+
+.modal-stats {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.modal-stats p {
+  margin: 0.5rem 0;
+  font-size: 1.2rem;
+  color: white;
+}
